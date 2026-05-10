@@ -1,9 +1,10 @@
 <div align="center">
 <br/>
 <h1>🕵️‍♂️ AI Competitive Intelligence Agent</h1>
- 
+
 <p><strong>An autonomous multi-LLM agent system that researches companies, analyzes market trends,<br/>and generates verified strategic reports — fully automated, zero manual effort.</strong></p>
 <br/>
+
 <!-- Language -->
 <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
 <!-- LLM Providers -->
@@ -11,29 +12,32 @@
 <img src="https://img.shields.io/badge/ChatGroq-Fast%20Inference-F55036?style=for-the-badge&logo=groq&logoColor=white" alt="ChatGroq"/>
 <img src="https://img.shields.io/badge/HuggingFace-Embeddings-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="HuggingFace"/>
 <br/><br/>
- 
+
 <!-- Orchestration -->
 <img src="https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=for-the-badge" alt="LangChain"/>
 <img src="https://img.shields.io/badge/LangGraph-Graph%20Workflow-FF6B35?style=for-the-badge" alt="LangGraph"/>
 <img src="https://img.shields.io/badge/LangSmith-Tracing%20%26%20Eval-F7C948?style=for-the-badge" alt="LangSmith"/>
 <br/><br/>
- 
-<!-- Tools -->
+
+<!-- Tools & API -->
 <img src="https://img.shields.io/badge/Tavily-AI%20Web%20Search-5865F2?style=for-the-badge" alt="Tavily"/>
+<img src="https://img.shields.io/badge/FastAPI-REST%20API-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
+<img src="https://img.shields.io/badge/Uvicorn-ASGI%20Server-4051B5?style=for-the-badge" alt="Uvicorn"/>
 <img src="https://img.shields.io/badge/python--dotenv-Env%20Config-ECD53F?style=for-the-badge" alt="python-dotenv"/>
 <br/><br/>
- 
+
 <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License"/>
 <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge" alt="Active"/>
 <img src="https://img.shields.io/badge/100%25-Python-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 100%"/>
 <br/><br/>
- 
+
 <blockquote>
-  <strong>Three LLMs. One agentic graph. Zero manual research.</strong><br/>
-  Powered by <strong>Google Gemini · ChatGroq · HuggingFace</strong> — orchestrated via <strong>LangGraph</strong>, traced live with <strong>LangSmith</strong>.
+  <strong>Three LLMs. One agentic graph. One REST API. Zero manual research.</strong><br/>
+  Powered by <strong>Google Gemini · ChatGroq · HuggingFace</strong> — orchestrated via <strong>LangGraph</strong>, served via <strong>FastAPI</strong>, traced live with <strong>LangSmith</strong>.
 </blockquote>
 </div>
 
+---
 
 ## 🧠 What It Does
 
@@ -43,7 +47,7 @@ This system uses a graph-based multi-agent workflow to autonomously:
 - Search the web for real-time competitive data using Tavily
 - Summarize and synthesize gathered information
 - Verify the accuracy and quality of findings
-- Generate a structured, final strategic report
+- Generate a structured, final strategic report via a REST API
 
 All agent interactions are fully observable via LangSmith tracing.
 
@@ -73,8 +77,10 @@ AI_Competitive_Intelligence_Agent/
 │   │   ├── research_prompt.py     # Prompt for the research agent
 │   │   ├── summary_prompt.py      # Prompt for the summarizer agent
 │   │   └── verification_prompt.py # Prompt for the verifier agent
-│   └── tools/                     # Custom tool definitions
-├── main.py                        # Entry point
+│   ├── tools/
+│   │   └── search_tool.py         # Tavily search tool definition
+│   └── api.py                     # FastAPI app & route definitions
+├── main.py                        # Entry point — runs Uvicorn server
 ├── requirements.txt
 ├── pyproject.toml
 └── .gitignore
@@ -89,31 +95,64 @@ AI_Competitive_Intelligence_Agent/
 | Agent Orchestration | LangChain + LangGraph |
 | LLM Providers | Google Gemini, Groq, HuggingFace |
 | Web Search | Tavily Search API |
+| REST API | FastAPI |
+| ASGI Server | Uvicorn |
 | Observability | LangSmith |
 | Environment Config | python-dotenv |
-| Language | Python |
+| Language | Python 3.11+ |
 
 ---
 
 ## 🔄 Agent Workflow
 
-The system runs as a directed graph powered by **LangGraph**:
+The system runs as a directed graph powered by **LangGraph**, exposed via a **FastAPI** REST endpoint:
 
 ```
-User Input
-    ↓
+POST /research
+      ↓
 Planner Agent      →  Breaks the task into a research plan
-    ↓
+      ↓
 Research Agent     →  Searches the web using Tavily API
-    ↓
+      ↓
 Summarizer Agent   →  Condenses and synthesizes findings
-    ↓
+      ↓
 Verifier Agent     →  Validates accuracy and completeness
-    ↓
-Final Report       →  Produces a structured strategic report
+      ↓
+Final Report       →  Returned as a structured JSON response
 ```
 
 Each node in the graph is an independent agent with its own prompt, LLM, and responsibilities.
+
+---
+
+## 🌐 API Endpoints
+
+Once the server is running, the following endpoints are available:
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/` | Health check — confirms server is running |
+| `POST` | `/research` | Run the full agent workflow and return report |
+| `POST` | `/research/stream` | Stream the report back chunk by chunk (SSE) |
+| `GET` | `/docs` | Interactive Swagger UI (auto-generated) |
+| `GET` | `/redoc` | ReDoc API documentation |
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:8000/research \
+  -H "Content-Type: application/json" \
+  -d '{"company": "OpenAI", "focus": "product strategy"}'
+```
+
+### Example Response
+
+```json
+{
+  "company": "OpenAI",
+  "report": "## Competitive Intelligence Report: OpenAI\n\n..."
+}
+```
 
 ---
 
@@ -157,11 +196,14 @@ LANGCHAIN_API_KEY=your_langsmith_api_key
 LANGCHAIN_PROJECT=AI_Competitive_Intelligence_Agent
 ```
 
-### 4. Run the Agent
+### 4. Run the Server
 
 ```bash
 python main.py
 ```
+
+The API will be live at **http://localhost:8000**
+Interactive docs available at **http://localhost:8000/docs**
 
 ---
 
@@ -191,11 +233,9 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-
 <div align="center">
 <br/>
 Made with 🧠 + ❤️ by PrincePandit16
- 
-⭐ **If this project helped you, drop a star — it means a lot!**
- 
+<br/><br/>
+⭐ <strong>If this project helped you, drop a star — it means a lot!</strong>
 </div>
