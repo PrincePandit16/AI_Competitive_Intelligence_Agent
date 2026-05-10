@@ -1,9 +1,5 @@
 langchain 
 langgraph 
 tavily-python 
-chromadb 
-beautifulsoup4 
 requests
-fastapi
-uvicorn
 python-dotenv
