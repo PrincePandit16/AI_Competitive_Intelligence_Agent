@@ -21,5 +21,9 @@ graph.add_edge("summarize_node","verification_node")
 graph.add_edge("verification_node","final_node")
 graph.add_edge("final_node",END)
 
+graph = graph.compile()
 
-workflow = graph.compile()
+def run_workflow(company: str, focus: str) -> str:
+    query = f"{company} - {focus}"
+    result = graph.invoke({"query": query})
+    return result["final_report"] 
